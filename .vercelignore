@@ -1,0 +1,11 @@
+# Ignore heavy backend code & Python dependencies for Vercel static frontend
+requirements.txt
+app.py
+run_clustering.py
+run_extraction.py
+run_ingestion.py
+ingest/
+data/
+discovery.db
+Procfile
+railway.json
