@@ -1,18 +1,8 @@
 {
-  "version": 2,
-  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "https://REPLACE_WITH_YOUR_RAILWAY_URL/api/$1"
-    },
-    {
-      "source": "/",
-      "destination": "/Design/index.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/Design/$1"
     }
   ]
 }

@@ -40,9 +40,11 @@ BARRIER_IMPACT_WEIGHTS = {
     "Need Verification": 0.5
 }
 
-# 1. Main Dashboard route serving Design/index.html
+# 1. Main Dashboard route serving index.html
 @app.route("/")
 def serve_index():
+    if os.path.exists("index.html"):
+        return send_from_directory(".", "index.html")
     return send_from_directory("Design", "index.html")
 
 # 2. Get Aggregated Metrics
