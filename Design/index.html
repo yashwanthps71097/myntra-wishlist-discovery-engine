@@ -648,6 +648,7 @@
     </div>
 
     <script>
+        const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '' : 'https://myntra-wishlist-discovery-engine.onrender.com';
         let dashboardData = {
             metrics: {},
             barriers: []
@@ -704,7 +705,7 @@
             input.value = '';
             chatBody.scrollTop = chatBody.scrollHeight;
 
-            fetch('/api/chat', {
+            fetch(API_BASE + '/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: text })
@@ -724,7 +725,7 @@
         // Load dynamic data on startup
         window.onload = function() {
             // 1. Fetch Metrics
-            fetch('/api/metrics')
+            fetch(API_BASE + '/api/metrics')
                 .then(res => res.json())
                 .then(data => {
                     dashboardData.metrics = data;
@@ -755,7 +756,7 @@
                 });
 
             // 2. Fetch Barriers & Populate Analytics
-            fetch('/api/barriers')
+            fetch(API_BASE + '/api/barriers')
                 .then(res => res.json())
                 .then(barriers => {
                     dashboardData.barriers = barriers;
@@ -835,7 +836,7 @@
                 });
 
             // 3. Fetch and Render Evidence Snippets
-            fetch('/api/evidence')
+            fetch(API_BASE + '/api/evidence')
                 .then(res => res.json())
                 .then(evidenceList => {
                     const container = document.getElementById('evidence-cards-container');
@@ -873,7 +874,7 @@
         // Load Hypothesis details based on selected dropdown barrier
         function loadHypothesis() {
             const barrier = document.getElementById('barrier-select').value;
-            fetch(`/api/hypotheses?barrier=${encodeURIComponent(barrier)}`)
+            fetch(`${API_BASE}/api/hypotheses?barrier=${encodeURIComponent(barrier)}`)
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById('hypothesis-barrier-title').innerText = `Hypothesis Statement for ${data.barrier}`;
@@ -946,7 +947,7 @@
             btn.disabled = true;
             btn.style.opacity = 0.6;
             
-            fetch('/api/run-analysis', {
+            fetch(API_BASE + '/api/run-analysis', {
                 method: 'POST'
             })
             .then(res => res.json())
