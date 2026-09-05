@@ -1,111 +1,89 @@
-# Deployment Guide: Vercel (Frontend) & Railway (Backend)
+# Deployment Guide: Production Cloud Hosting
 
-This standalone guide provides step-by-step instructions and configuration details to deploy the **AI Discovery Engine** with the frontend hosted on **Vercel** and the backend API & database hosted on **Railway**.
+This document provides deployment instructions, live endpoints, and operational configurations for the **AI Discovery Engine** across **Render** (Full-Stack / Primary Backend) and **Vercel** (Frontend).
 
 ---
 
-## 1. Architecture Overview
+## 1. Live Production Deployments
 
-| Component | Platform | Role | Key Files |
+| Component | Platform | Role | Live URL / Access |
 | :--- | :--- | :--- | :--- |
-| **Frontend** | **Vercel** | Serves static PM dashboard & proxies `/api/*` requests | `Design/index.html`, `vercel.json` |
-| **Backend** | **Railway** | Runs Flask API, Groq LLM pipelines & SQLite data | `app.py`, `Procfile`, `railway.json`, `discovery.db`, `requirements.txt` |
+| **Full-Stack Application** *(Primary)* | **Render** | Runs Gunicorn WSGI, Flask API, SQLite DB, and serves the PM Dashboard UI | 👉 **[https://myntra-wishlist-discovery-engine.onrender.com](https://myntra-wishlist-discovery-engine.onrender.com)** |
+| **Frontend CDN** | **Vercel** | Static hosting & dynamic `/api/*` rewrites to Render backend | 👉 **[Vercel Dashboard](https://vercel.com/yashwanth-p-s/myntra-wishlist-discovery-engine)** |
+| **Codebase** | **GitHub** | Version control & automated CI/CD deployment triggers | 👉 **[GitHub Repository](https://github.com/yashwanthps71097/myntra-wishlist-discovery-engine)** |
 
 ```mermaid
 flowchart LR
-    A[Browser User] -->|Loads UI| B[Vercel: Design/index.html]
-    B -->|API Calls: /api/...| C[Vercel Rewrites Proxy]
-    C -->|Secure HTTPS| D[Railway: Gunicorn WSGI]
-    D --> E[Flask App: app.py]
-    E --> F[(discovery.db)]
-    E --> G[Groq Cloud API]
+    A[Browser User / Evaluator] -->|Opens Live Demo| B[Render: Full-Stack Container]
+    B --> C[Gunicorn WSGI Server]
+    C --> D[Flask App: app.py]
+    D --> E[(discovery.db: 158 Conversations)]
+    D --> F[Groq Cloud LLM: LLaMA 3.1]
+    
+    subgraph Optional Frontend CDN
+        V[Vercel CDN] -->|Proxies /api/*| B
+    end
 ```
 
 ---
 
-## 2. Configuration Files Created
+## 2. Configuration Files in the Repository
 
-The following deployment configuration files are already set up in the project:
+The project contains all required deployment configurations:
 
-### A. Railway Backend Configuration
 1. **[`Procfile`](file:///c:/Users/ADMIN/Desktop/Product%20Owner%20Project%202/AI%20Discovered%20Engine/Procfile)**:
+   Specifies the Gunicorn WSGI start command for cloud containers:
    ```text
    web: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
    ```
 2. **[`railway.json`](file:///c:/Users/ADMIN/Desktop/Product%20Owner%20Project%202/AI%20Discovered%20Engine/railway.json)**:
-   Specifies Nixpacks build settings, dynamic `$PORT` assignment, and automatic restart policies.
-
-### B. Vercel Frontend Configuration
-1. **[`vercel.json`](file:///c:/Users/ADMIN/Desktop/Product%20Owner%20Project%202/AI%20Discovered%20Engine/vercel.json)**:
-   Routes all dashboard visits to `Design/index.html` and rewrites `/api/*` calls directly to your Railway production URL.
-
----
-
-## 3. Step-by-Step Deployment Instructions
-
-### Step 1: Push Code to GitHub
-Ensure all your files (`Design/`, `ingest/`, `app.py`, `discovery.db`, `Procfile`, `railway.json`, `vercel.json`) are committed:
-```bash
-git add .
-git commit -m "Configure Vercel and Railway deployment"
-git push origin main
-```
+   Configuration schema for Railway deployments (Nixpacks build settings, health checks).
+3. **[`vercel.json`](file:///c:/Users/ADMIN/Desktop/Product%20Owner%20Project%202/AI%20Discovered%20Engine/vercel.json)**:
+   Configures static file routing and rewrites `/api/*` calls to the live Render backend.
+4. **[`.vercelignore`](file:///c:/Users/ADMIN/Desktop/Product%20Owner%20Project%202/AI%20Discovered%20Engine/.vercelignore)**:
+   Prevents Vercel from bundling heavy Python and ML dependencies, ensuring instantaneous 2-second static deployments.
+5. **[`requirements.txt`](file:///c:/Users/ADMIN/Desktop/Product%20Owner%20Project%202/AI%20Discovered%20Engine/requirements.txt)**:
+   Contains all runtime dependencies, including `Flask`, `gunicorn`, `flask-cors`, and ML processing libraries.
 
 ---
 
-### Step 2: Deploy Backend to Railway
+## 3. How to Re-Deploy or Maintain Services
 
-1. Go to **[Railway.app](https://railway.app)** and sign in.
-2. Click **"New Project"** ➔ Select **"Deploy from GitHub repo"**.
-3. Choose your repository: `AI Discovered Engine`.
-4. Once created, click on your service ➔ Open the **Variables** tab:
-   - Add `GROQ_API_KEY`: *(paste your Groq API key from `.env`)*
-   - Add `PORT`: `5000` *(Railway injects dynamic `$PORT` automatically, but setting default ensures fallback)*
-5. Open the **Settings** tab ➔ Scroll to **Networking** ➔ Click **"Generate Domain"**.
-   - Your backend domain will look like:
-     `https://ai-discovered-engine-production.up.railway.app`
-6. Verify deployment by opening in your browser:
-   - `https://your-railway-url.up.railway.app/api/health` ➔ should return `{"status": "healthy"}`
-   - `https://your-railway-url.up.railway.app/api/metrics` ➔ should return live metrics JSON
+### A. Render (Primary Full-Stack Deployment)
+1. Log in to **[dashboard.render.com](https://dashboard.render.com)**.
+2. The Web Service is connected to GitHub repo `yashwanthps71097/myntra-wishlist-discovery-engine`.
+3. **Build Command**: `pip install -r requirements.txt`
+4. **Start Command**: `gunicorn app:app`
+5. **Environment Variables**:
+   * `GROQ_API_KEY`: Configured in Render settings.
+6. Any git commit pushed to `main` triggers an automatic zero-downtime deployment.
 
----
-
-### Step 3: Connect Frontend on Vercel
-
-1. Open **[`vercel.json`](file:///c:/Users/ADMIN/Desktop/Product%20Owner%20Project%202/AI%20Discovered%20Engine/vercel.json)** and replace:
-   `https://REPLACE_WITH_YOUR_RAILWAY_URL` with your actual Railway URL from Step 2:
-   ```json
-   {
-     "source": "/api/(.*)",
-     "destination": "https://ai-discovered-engine-production.up.railway.app/api/$1"
-   }
-   ```
-2. Commit and push this change to GitHub:
-   ```bash
-   git add vercel.json
-   git commit -m "Update Railway backend URL in vercel.json"
-   git push origin main
-   ```
-3. Go to **[Vercel.com](https://vercel.com)** and log in.
-4. Click **"Add New..."** ➔ Select **"Project"**.
-5. Import your GitHub repository.
-6. Leave settings as default (Framework Preset: **Other**, Root Directory: `./`).
-7. Click **Deploy**.
-8. Within seconds, Vercel will give you a live URL (e.g. `https://myntra-ai-discovery.vercel.app`).
+### B. Vercel (Alternative Frontend CDN)
+1. Connected to repository `yashwanthps71097/myntra-wishlist-discovery-engine`.
+2. Serves static dashboard assets directly to Vercel's global Edge Network.
+3. Automatically proxies data requests to the live Render backend.
 
 ---
 
-## 4. Verification Checklist
+## 4. Live API Health & Diagnostics
 
-- [ ] **Frontend UI**: Open your Vercel URL. Check that the Myntra PM Dashboard loads with styling, fonts, and icons.
-- [ ] **Data Sync**: Check that the 4 KPI cards (Conversations Processed, Core Barriers Detected, Wishlist Conversion, Users Analyzed) display dynamic numbers.
-- [ ] **Barrier Matrix**: Confirm that the purchase barrier breakdown and opportunity prioritization tables populate.
-- [ ] **Evidence Modal**: Click an evidence card to confirm customer quotes and AI reasoning appear.
-- [ ] **AI Copilot & Hypotheses**: Ask a question in the PM AI Copilot chat or select a barrier from the dropdown to ensure Groq responds.
+The production backend on Render can be verified using these endpoints:
+
+| Endpoint | Method | Expected Output |
+| :--- | :---: | :--- |
+| **`/api/health`** | `GET` | `{"service": "AI Discovery Engine Backend", "status": "healthy"}` |
+| **`/api/metrics`** | `GET` | Returns 158 processed reviews, 6 detected barriers, platform distribution |
+| **`/api/barriers`** | `GET` | Returns opportunity matrix & impact scores |
+| **`/api/evidence`** | `GET` | Returns verified user quotes with sentiment & severity scores |
+| **`/api/hypotheses`** | `GET` | Returns dynamic testable hypothesis statements |
 
 ---
 
-## 5. Maintenance & Database Persistence Note
+## 5. Persistence & Local Development
 
-- **SQLite Database (`discovery.db`)**: `discovery.db` is bundled into your deployment repository with full baseline data.
-- **Persistent Pipeline Runs**: If you frequently trigger `/api/run-analysis` in production to scrape new live comments, add a **Railway Persistent Volume** mounted to `/data` so modifications persist across container restarts.
+* **Local Server**:
+  ```powershell
+  python app.py
+  ```
+  Runs on **[http://127.0.0.1:5000](http://127.0.0.1:5000)**.
+* **Database (`discovery.db`)**: Pre-populated SQLite relational database bundled directly with the application containing indexed reviews across all 8 assignment channels.
