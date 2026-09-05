@@ -4,7 +4,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://REPLACE_WITH_YOUR_RAILWAY_URL/api/$1"
+      "destination": "https://myntra-wishlist-discovery-engine.onrender.com/api/$1"
     }
   ]
 }
